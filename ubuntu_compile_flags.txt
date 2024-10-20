@@ -1,4 +1,0 @@
--I
-/opt/glfw-3.4/include
-/opt/glfw-3.4/build/src/libglfw3.a
--lGL
