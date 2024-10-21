@@ -10,7 +10,7 @@ else
 	TARGET = hellowindow
 endif
 
-SRCS = hellowindow.cpp
+SRCS = hellowindow.cpp glad.cpp
 
 
 all: $(TARGET)
