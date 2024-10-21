@@ -18,3 +18,6 @@ all: $(TARGET)
 $(TARGET): $(SRCS)
 	$(CC) $(ARGS) -o $(TARGET) $(SRCS)
 
+clean:
+	rm -f *.o $(TARGET)
+
