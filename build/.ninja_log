@@ -1,0 +1,7 @@
+# ninja log v6
+26	485	7631894603348934	CMakeFiles/LearnOpenGl.dir/hellowindow.cpp.obj	42ef8a5465d4235e
+1189	1331	7631894614961691	LearnOpenGl.exe	16b0e1666b55f6bf
+32	1189	7631894603409522	CMakeFiles/LearnOpenGl.dir/glad.cpp.obj	2912c5d7231fdfd9
+29	527	7631897263167090	CMakeFiles/LearnOpenGl.dir/hellowindow.cpp.obj	42ef8a5465d4235e
+35	1234	7631897263221084	CMakeFiles/LearnOpenGl.dir/glad.cpp.obj	2912c5d7231fdfd9
+1234	1381	7631897275186593	LearnOpenGl.exe	16b0e1666b55f6bf
