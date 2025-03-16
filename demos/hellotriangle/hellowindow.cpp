@@ -5,6 +5,8 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
+const int windowWidth {800};
+const int windowHeight {600};
 
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
@@ -28,7 +30,7 @@ int main(void) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create Window object
-    GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -44,7 +46,7 @@ int main(void) {
         return -1;
     }
 
-    glViewport(0, 0, 800, 600);
+    glViewport(0, 0, windowWidth, windowHeight);
 
     // Register the callback function so GLFW calls it
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -66,7 +68,7 @@ int main(void) {
     // CREATE SHADERS
 
     // Create the vertex shader object
-    unsigned int vertexShader;
+    GLuint vertexShader;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
 
     // attach the vertex shader source code to the object and compile the shader
@@ -84,7 +86,7 @@ int main(void) {
     }
 
     // compile the fragment shader
-    unsigned int fragmentShader;
+    GLuint fragmentShader;
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
     glCompileShader(fragmentShader);
@@ -170,7 +172,7 @@ int main(void) {
 
 
 // callback function for when the window is resized by a user 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }  
