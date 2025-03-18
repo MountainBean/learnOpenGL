@@ -190,8 +190,6 @@ int main(void) {
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
         // Draw the object
-        ourShader.setFloat("xOffset", offset[0]);
-        ourShader.setFloat("yOffset", offset[1]);
         ourShader.setFloat("smileyFade", smileyFade);
         ourShader.use();
         glBindVertexArray(VAO);
@@ -212,7 +210,7 @@ int main(void) {
 void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
-}  
+}
 
 // take input from user
 void processInput(GLFWwindow *window)
@@ -224,8 +222,4 @@ void processInput(GLFWwindow *window)
         smileyFade = std::clamp(smileyFade + 0.001f, 0.0f, 1.0f);
     if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
         smileyFade = std::clamp(smileyFade - 0.001f, 0.0f, 1.0f);
-    if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        offset[0] -= 0.001f;
-    if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        offset[0] += 0.001f;
 }
