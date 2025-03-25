@@ -66,7 +66,7 @@ int main(void) {
     int width;
     int height;
     int nrChannels;
-    unsigned char* data = stbi_load("../data/container.jpg",
+    unsigned char* data = stbi_load("../../data/container.jpg",
                                     &width,
                                     &height,
                                     &nrChannels,
@@ -95,7 +95,7 @@ int main(void) {
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture1);
     stbi_set_flip_vertically_on_load(true); // flip the y in image data
-    data = stbi_load("../data/ahhprofile.png",
+    data = stbi_load("../../data/ahhprofile.png",
                      &width,
                      &height,
                      &nrChannels,

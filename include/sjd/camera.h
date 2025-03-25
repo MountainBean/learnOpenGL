@@ -1,6 +1,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include "glm/ext/vector_float3.hpp"
+#include "glm/geometric.hpp"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -13,7 +15,9 @@ public:
         FORWARD,
         BACKWARD,
         LEFT,
-        RIGHT
+        RIGHT,
+        UP,
+        DOWN
     };
 
     glm::vec3 up;
@@ -75,13 +79,17 @@ inline void Camera::processKeyboard(Camera::Movement direction,
                                     float deltaTime) {
     float velocity {movementSpeed * deltaTime};
     if (direction == FORWARD)
-        pos += front * velocity;
+        pos += glm::normalize(glm::vec3(front.x, 0.0f, front.z)) * velocity;
     if (direction == BACKWARD)
-        pos -= front * velocity;
+        pos -= glm::normalize(glm::vec3(front.x, 0.0f, front.z)) * velocity;
     if (direction == LEFT)
         pos -= right * velocity;
     if (direction == RIGHT)
         pos += right * velocity;
+    if (direction == UP)
+        pos += worldUp * velocity;
+    if (direction == DOWN)
+        pos -= worldUp * velocity;
 }
 
 inline void Camera::processMouseMovement(float xoffset,
