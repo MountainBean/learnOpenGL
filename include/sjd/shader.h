@@ -18,7 +18,7 @@ public:
     GLuint m_id;
     
     // constructor that builds the shader
-    Shader(const std::string& vertexPath, const std::string& fragmentPath);
+    Shader(const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath="");
 
     // use/activate the shader
     void use() {glUseProgram(m_id);}
@@ -37,11 +37,12 @@ public:
     void setMat4(const std::string &name, const glm::mat4 &mat) const;
 };
 
-inline Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath)
+inline Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath)
 {
     // 1. retrieve the vertex/fragment source code from filePath
     std::string vertexCode;
     std::string fragmentCode;
+    std::string geometryCode;
     std::ifstream vShaderFile;
     std::ifstream fShaderFile;
 
@@ -73,11 +74,33 @@ inline Shader::Shader(const std::string& vertexPath, const std::string& fragment
     }
     const char* vShaderCode = vertexCode.c_str();
     const char* fShaderCode = fragmentCode.c_str();
+    if (geometryPath != "") {
+        std::ifstream gShaderFile;
+        gShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        try 
+        {
+            // open file
+            gShaderFile.open(geometryPath);
+            std::stringstream gShaderStream;
+            // read file's buffer contents into streams
+            gShaderStream << gShaderFile.rdbuf();
+            // close file handlers
+            gShaderFile.close();
+            // convert stream into string
+            geometryCode   = gShaderStream.str();
+        }
+        catch(std::ifstream::failure e)
+        {
+            std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+        }
+    }
+    const char* gShaderCode = geometryCode.c_str();
 
     // 2. compile shaders
-    GLuint vertex;
-    GLuint fragment;
-    int success;
+    GLuint vertex {};
+    GLuint fragment {};
+    GLuint geometry {};
+    int success {};
     char infoLog[512];
 
     // vertex Shader
@@ -104,10 +127,25 @@ inline Shader::Shader(const std::string& vertexPath, const std::string& fragment
         std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
     };
 
+    // Optional Geometry Shader
+    if (geometryPath != "") {
+        geometry = glCreateShader(GL_GEOMETRY_SHADER);
+        glShaderSource(geometry, 1, &gShaderCode, NULL);
+        glCompileShader(geometry);
+        // print compile errors if any
+        glGetShaderiv(geometry, GL_COMPILE_STATUS, &success);
+        if(!success)
+        {
+            glGetShaderInfoLog(geometry, 512, NULL, infoLog);
+            std::cout << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n" << infoLog << std::endl;
+        };
+
+    }
 
     // shader Program
     m_id = glCreateProgram();
     glAttachShader(m_id, vertex);
+    if (geometryPath != "") glAttachShader(m_id, geometry);
     glAttachShader(m_id, fragment);
     glLinkProgram(m_id);
     // print linking errors if any
