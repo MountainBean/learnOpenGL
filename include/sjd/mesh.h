@@ -35,9 +35,10 @@ public:
 
     void Draw(sjd::Shader &shader);
 
-private:
     //  render data
     unsigned int VAO, VBO, EBO;
+
+private:
 
     void setupMesh();
 };
@@ -101,7 +102,7 @@ inline void Mesh::Draw(sjd::Shader &shader) {
 
     // draw mesh
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 }

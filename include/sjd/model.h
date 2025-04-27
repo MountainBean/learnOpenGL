@@ -29,11 +29,12 @@ public:
 
     void Draw(Shader &shader);	
 
+    std::vector<Mesh> m_meshes;
+    TexVec m_texturesLoaded;
+
 private:
     // model data
-    std::vector<Mesh> m_meshes;
     std::string m_directory;
-    TexVec m_texturesLoaded;
 
     void loadModel(std::string path);
 
