@@ -32,8 +32,8 @@ public:
             return false;
         }
         else {
-            return true;
             m_lastFrameTime = static_cast<float>(glfwGetTime());
+            return true;
         }
 
 }

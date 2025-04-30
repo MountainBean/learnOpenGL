@@ -1,0 +1,167 @@
+#ifndef LIGHT_H
+#define LIGHT_H
+#include "glm/ext/matrix_transform.hpp"
+#include "glm/ext/vector_float3.hpp"
+#include <array>
+#include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <sjd/shader.h>
+namespace sjd {
+
+static const std::array<float, 108> lightCubeVertices {
+    -0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+    -0.5f,  0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+
+    -0.5f, -0.5f,  0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f,
+    -0.5f, -0.5f,  0.5f,
+
+    -0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f,
+
+     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+
+    -0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f,  0.5f,
+     0.5f, -0.5f,  0.5f,
+    -0.5f, -0.5f,  0.5f,
+    -0.5f, -0.5f, -0.5f,
+
+    -0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f,  0.5f,
+     0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f, -0.5f,
+};
+
+class DirLight {
+public:
+    DirLight(glm::vec3 direction={0.0f, -1.0f, 0.0f},
+             glm::vec3 colour={1.0f, 1.0f, 1.0f},
+             glm::vec3 ambient={0.08f, 0.08f, 0.08f},
+             glm::vec3 diffuse={0.6f, 0.6f, 0.6f},
+             glm::vec3 specular={0.8f, 0.8f, 0.8f})
+    :   m_direction {direction}
+    ,   m_colour    {colour}
+    ,   m_ambient   {ambient}
+    ,   m_diffuse   {diffuse}
+    ,   m_specular  {specular}
+    {
+    }
+
+    void computeLight(sjd::Shader& shader) const {
+        shader.setVec3("dirLight.direction", m_direction);
+        shader.setVec3("dirLight.ambient", m_ambient*m_colour);
+        shader.setVec3("dirLight.diffuse", m_diffuse*m_colour);
+        shader.setVec3("dirLight.specular", m_specular*m_colour);
+    }
+
+private:
+    glm::vec3 m_direction;
+    glm::vec3 m_colour;
+    glm::vec3 m_ambient;
+    glm::vec3 m_diffuse;
+    glm::vec3 m_specular;
+};
+
+class PointLight {
+public:
+    PointLight(glm::vec3 position={0.0f, 0.0f, 0.0f},
+               glm::vec3 colour={1.0f, 1.0f, 1.0f},
+               glm::vec3 ambient={0.08f, 0.08f, 0.08f},
+               glm::vec3 diffuse={0.6f, 0.6f, 0.6f},
+               glm::vec3 specular={0.8f, 0.8f, 0.8f},
+               float constant=1.0f,
+               float linear=0.09f,
+               float quadratic=0.032f)
+    :   m_position {position}
+    ,   m_colour    {colour}
+    ,   m_ambient   {ambient}
+    ,   m_diffuse   {diffuse}
+    ,   m_specular  {specular}
+    ,   m_constant  {constant}
+    ,   m_linear    {linear}
+    ,   m_quadratic {quadratic}
+    ,   m_lightCubeShader {"../code/shaders/3.3.simple.vert.glsl", "../code/shaders/light_cube.frag.glsl"}
+    {
+        glGenBuffers(1, &m_lightCubeVbo);
+        glGenVertexArrays(1, &m_lightCubeVao);
+        glBindVertexArray(m_lightCubeVao);
+        glBindBuffer(GL_ARRAY_BUFFER, m_lightCubeVbo);
+        glVertexAttribPointer(0,
+                              3,
+                              GL_FLOAT,
+                              GL_FALSE,
+                              3 * sizeof(float),
+                              (void*)0);
+
+        glBufferData(GL_ARRAY_BUFFER,
+                     sizeof(lightCubeVertices),
+                     lightCubeVertices.data(),
+                     GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glEnableVertexAttribArray(0);
+    }
+
+    void computeLight(sjd::Shader& shader) const {
+        shader.use();
+        shader.setVec3("pointLight.position", m_position);
+        shader.setVec3("pointLight.ambient", m_ambient*m_colour);
+        shader.setVec3("pointLight.diffuse", m_diffuse*m_colour);
+        shader.setVec3("pointLight.specular", m_specular*m_colour);
+        shader.setFloat("pointLight.constant", m_constant);
+        shader.setFloat("pointLight.linear", m_linear);
+        shader.setFloat("pointLight.quadratic", m_quadratic);
+    }
+
+    void drawLightCube(glm::mat4 projection, glm::mat4 view) {
+        m_lightCubeShader.use();
+        m_lightCubeShader.setMat4("projection", projection);
+        m_lightCubeShader.setMat4("view", view);
+        m_lightCubeShader.setMat4("model", glm::scale(glm::translate(glm::mat4(1.0f), m_position), glm::vec3(0.25f)));
+        m_lightCubeShader.setVec3("lightColour", m_colour);
+        glBindVertexArray(m_lightCubeVao);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
+    }
+
+    void moveTo(glm::vec3 position) {
+        m_position = position;
+    }
+
+private:
+    glm::vec3 m_position;
+    glm::vec3 m_colour;
+    glm::vec3 m_ambient;
+    glm::vec3 m_diffuse;
+    glm::vec3 m_specular;
+    float m_constant;
+    float m_linear;
+    float m_quadratic;
+    unsigned int m_lightCubeVao;
+    unsigned int m_lightCubeVbo;
+    sjd::Shader m_lightCubeShader;
+};
+
+}
+#endif
