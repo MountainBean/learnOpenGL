@@ -123,15 +123,15 @@ public:
         glEnableVertexAttribArray(0);
     }
 
-    void computeLight(sjd::Shader& shader) const {
+    void computeLight(sjd::Shader& shader, unsigned int id=0) const {
         shader.use();
-        shader.setVec3("pointLight.position", m_position);
-        shader.setVec3("pointLight.ambient", m_ambient*m_colour);
-        shader.setVec3("pointLight.diffuse", m_diffuse*m_colour);
-        shader.setVec3("pointLight.specular", m_specular*m_colour);
-        shader.setFloat("pointLight.constant", m_constant);
-        shader.setFloat("pointLight.linear", m_linear);
-        shader.setFloat("pointLight.quadratic", m_quadratic);
+        shader.setVec3(("pointLights[" + std::to_string(id) + "].position").c_str(), m_position);
+        shader.setVec3(("pointLights[" + std::to_string(id) + "].ambient").c_str(), m_ambient*m_colour);
+        shader.setVec3(("pointLights[" + std::to_string(id) + "].diffuse").c_str(), m_diffuse*m_colour);
+        shader.setVec3(("pointLights[" + std::to_string(id) + "].specular").c_str(), m_specular*m_colour);
+        shader.setFloat(("pointLights[" + std::to_string(id) + "].constant").c_str(), m_constant);
+        shader.setFloat(("pointLights[" + std::to_string(id) + "].linear").c_str(), m_linear);
+        shader.setFloat(("pointLights[" + std::to_string(id) + "].quadratic").c_str(), m_quadratic);
     }
 
     void drawLightCube(glm::mat4 projection, glm::mat4 view) {

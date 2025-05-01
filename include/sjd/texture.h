@@ -14,7 +14,7 @@ static unsigned int TexNr {0};
 class Texture {
 public:
 
-    Texture(const std::string& path) 
+    Texture(const std::string& path, bool gamma=false) 
     : m_texNr {TexNr++}
     , m_textureWrapS {GL_CLAMP_TO_EDGE}
     , m_textureWrapT {GL_CLAMP_TO_EDGE}
@@ -32,23 +32,30 @@ public:
                                         &nrChannels,
                                         0);
         if (data) {
-            GLenum format {};
-            if (nrChannels == 1)
-                format = GL_RED;
-            else if (nrChannels == 3)
-                format = GL_RGB;
-            else if (nrChannels == 4)
-                format = GL_RGBA;
+            GLenum formatOut {};
+            GLenum formatIn {};
+            if (nrChannels == 1) {
+                formatOut = GL_RED;
+                formatIn = GL_RED;
+            }
+            else if (nrChannels == 3) {
+                formatOut = GL_RGB;
+                (gamma) ? formatIn = GL_SRGB : formatIn = GL_RGB;
+            }
+            else if (nrChannels == 4) {
+                formatOut = GL_RGBA;
+                (gamma) ? formatIn = GL_SRGB_ALPHA : formatIn = GL_RGBA;
+            }
 
             glActiveTexture(GL_TEXTURE0 + m_texNr);
             glBindTexture(GL_TEXTURE_2D, m_id);
             glTexImage2D(GL_TEXTURE_2D,
                          0,
-                         format,
+                         formatIn,
                          texWidth,
                          texHeight,
                          0,
-                         format,
+                         formatOut,
                          GL_UNSIGNED_BYTE,
                          data);
 

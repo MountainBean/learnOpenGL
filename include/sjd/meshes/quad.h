@@ -11,6 +11,7 @@
 
 #include <sjd/shader.h>
 #include <sjd/light.h>
+#include <vector>
 
 
 namespace sjd {
@@ -135,6 +136,17 @@ public:
         m_shader.use();
         m_shader.setVec3("viewPos", viewPos);
         pointLight.computeLight(m_shader);
+    }
+
+    void computeLight(const std::vector<sjd::PointLight>& pointLights, glm::vec3 viewPos) {
+        m_shader.use();
+        m_shader.setVec3("viewPos", viewPos);
+        m_shader.setInt("numPointLights", static_cast<int>(pointLights.size()));
+        unsigned int i = 0;
+        for (const sjd::PointLight& pointLight : pointLights) {
+            pointLight.computeLight(m_shader, i);
+            ++i;
+        }
     }
 
     void draw(glm::mat4 projection, glm::mat4 view) {

@@ -1,5 +1,4 @@
-#include "glm/ext/scalar_constants.hpp"
-#include "glm/trigonometric.hpp"
+#include "glm/ext/vector_float3.hpp"
 #include <cstdint>
 
 #include <glad/glad.h>
@@ -19,23 +18,28 @@
 
 #include <sjd/meshes/cube.h>
 #include <sjd/meshes/quad.h>
+#include <vector>
 
 
 namespace globals {
     constexpr uint32_t windowWidth {1200};
     constexpr uint32_t windowHeight {900};
+    bool actionKeyDown = false;
+    bool gammaCor = true;
 }
 
+void bonus_processInput(GLFWwindow* window);
 
 int main(void) {
 
     // INIT WINDOW
     GLFWwindow* window {sjd::createCoreWindow(globals::windowWidth, globals::windowHeight, 4)};
-    sjd::Timing timing {};
+    sjd::Timing timing {60};
     // ---
 
     // CONFIGURE OPENGL
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_FRAMEBUFFER_SRGB);
 
     // INIT PLAYER
     sjd::Camera playerCamera({0, 2.0f, 0});
@@ -44,15 +48,15 @@ int main(void) {
 
     // SHADERS
     sjd::Shader cubeShader("../code/shaders/lighting.vert.glsl",
-                           "../code/shaders/phong.frag.glsl");
+                           "../code/shaders/blinn_phong16.frag.glsl");
     sjd::Shader floorShader("../code/shaders/lighting.vert.glsl",
-                            "../code/shaders/phong.frag.glsl");
+                            "../code/shaders/blinn_phong16.frag.glsl");
     // ---
 
     // TEXTURES
-    sjd::Texture containerDiffuseMap {"../data/container2.jpg"};
+    sjd::Texture containerDiffuseMap {"../data/container2.jpg", true};
     sjd::Texture containerSpecularMap {"../data/container2_specular.png"};
-    sjd::Texture floorDiffuseMap {"../data/wood.png"};
+    sjd::Texture floorDiffuseMap {"../data/wood.png", true};
     floorDiffuseMap.setTextureParameter(GL_TEXTURE_WRAP_S, GL_REPEAT);
     floorDiffuseMap.setTextureParameter(GL_TEXTURE_WRAP_T, GL_REPEAT);
 
@@ -72,8 +76,17 @@ int main(void) {
 
     // LIGHTS
     sjd::DirLight dirLight {};
-
-    sjd::PointLight pointLight(glm::vec3(2,1,-20.0f));
+    glm::vec3 pointLightColour({1.0f, 1.0f, 1.0f});
+    std::vector<sjd::PointLight> pointLights;
+    pointLights.push_back(sjd::PointLight({4, 1.5, -2}, pointLightColour));
+    pointLights.push_back(sjd::PointLight({4, 1.5, -6}, pointLightColour));
+    pointLights.push_back(sjd::PointLight({4, 1.5, -10}, pointLightColour));
+    pointLights.push_back(sjd::PointLight({4, 1.5, -14}, pointLightColour));
+    pointLights.push_back(sjd::PointLight({4, 1.5, -18}, pointLightColour));
+    pointLights.push_back(sjd::PointLight({4, 1.5, -22}, pointLightColour));
+    pointLights.push_back(sjd::PointLight({4, 1.5, -26}, pointLightColour));
+    pointLights.push_back(sjd::PointLight({4, 1.5, -30}, pointLightColour));
+    pointLights.push_back(sjd::PointLight({4, 1.5, -34}, pointLightColour));
 
     // RENDER LOOP
     while(!glfwWindowShouldClose(window)) {
@@ -83,9 +96,10 @@ int main(void) {
 
         // PLAYER INPUTS
         player.processInput(timing.getDeltaTime());
+        bonus_processInput(window);
 
         // CLEAR BUFFERS
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // CONFIGURE SHADERS
@@ -96,13 +110,14 @@ int main(void) {
         /*cube.computeLight(dirLight, playerCamera.pos);*/
         /*floor.computeLight(dirLight, playerCamera.pos);*/
 
-        // Point Light
-        pointLight.moveTo({5*sinf(static_cast<float>(2*glfwGetTime())), 1.5f, -15 + 15*cosf(static_cast<float>(0.5f*glfwGetTime()))});
-        cube.computeLight(pointLight, playerCamera.pos);
-        floor.computeLight(pointLight, playerCamera.pos);
+        // Point Lights
+        cube.computeLight(pointLights, playerCamera.pos);
+        floor.computeLight(pointLights, playerCamera.pos);
 
         // Draw objects
-        pointLight.drawLightCube(projection, view);
+        for (sjd::PointLight currPointLight : pointLights) {
+            currPointLight.drawLightCube(projection, view);
+        }
         floor.draw(projection, view);
 
         cube.reset();
@@ -121,4 +136,19 @@ int main(void) {
 
     glfwTerminate();
     return 0;
+}
+
+
+
+void bonus_processInput(GLFWwindow* window) {
+
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+        globals::actionKeyDown = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE && globals::actionKeyDown) {
+        globals::actionKeyDown = false;
+        // Do action here...
+        // ...
+    }
+
 }
