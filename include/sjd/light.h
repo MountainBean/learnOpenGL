@@ -1,7 +1,6 @@
 #ifndef LIGHT_H
 #define LIGHT_H
-#include "glm/ext/matrix_transform.hpp"
-#include "glm/ext/vector_float3.hpp"
+#include "glm/geometric.hpp"
 #include <array>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -54,22 +53,44 @@ static const std::array<float, 108> lightCubeVertices {
     -0.5f,  0.5f, -0.5f,
 };
 
-class DirLight {
-public:
-    DirLight(glm::vec3 direction={0.0f, -1.0f, 0.0f},
+class Light {
+protected:
+    Light(glm::vec3 position={0.0f, -1.0f, 0.0f},
              glm::vec3 colour={1.0f, 1.0f, 1.0f},
-             glm::vec3 ambient={0.08f, 0.08f, 0.08f},
-             glm::vec3 diffuse={0.6f, 0.6f, 0.6f},
-             glm::vec3 specular={0.8f, 0.8f, 0.8f})
-    :   m_direction {direction}
+             bool gamma=false)
+    :   m_position {position}
     ,   m_colour    {colour}
-    ,   m_ambient   {ambient}
-    ,   m_diffuse   {diffuse}
-    ,   m_specular  {specular}
+    ,   m_ambient   {0.08f}
+    ,   m_diffuse   {0.6f}
+    ,   m_specular  {0.8f}
+    ,   m_gamma     {gamma}
     {
     }
 
-    void computeLight(sjd::Shader& shader) const {
+public:
+    virtual void computeLight(sjd::Shader& shader, [[maybe_unused]] unsigned int id=0) const = 0;
+
+protected:
+    glm::vec3 m_position;
+    glm::vec3 m_colour;
+    glm::vec3 m_ambient;
+    glm::vec3 m_diffuse;
+    glm::vec3 m_specular;
+    glm::vec3 m_direction;
+    bool m_gamma;
+};
+
+class DirLight: public Light {
+public:
+    DirLight(glm::vec3 position={0.0f, -1.0f, 0.0f},
+             glm::vec3 colour={1.0f, 1.0f, 1.0f},
+             bool gamma=false)
+    :   Light {position, colour, gamma}
+    {
+        m_direction = -glm::normalize(m_position);
+    }
+
+    void computeLight(sjd::Shader& shader, [[maybe_unused]] unsigned int id=0) const {
         shader.setVec3("dirLight.direction", m_direction);
         shader.setVec3("dirLight.ambient", m_ambient*m_colour);
         shader.setVec3("dirLight.diffuse", m_diffuse*m_colour);
@@ -78,32 +99,28 @@ public:
 
 private:
     glm::vec3 m_direction;
-    glm::vec3 m_colour;
-    glm::vec3 m_ambient;
-    glm::vec3 m_diffuse;
-    glm::vec3 m_specular;
 };
 
-class PointLight {
+class PointLight: public Light {
 public:
     PointLight(glm::vec3 position={0.0f, 0.0f, 0.0f},
                glm::vec3 colour={1.0f, 1.0f, 1.0f},
-               glm::vec3 ambient={0.08f, 0.08f, 0.08f},
-               glm::vec3 diffuse={0.6f, 0.6f, 0.6f},
-               glm::vec3 specular={0.8f, 0.8f, 0.8f},
-               float constant=1.0f,
-               float linear=0.09f,
-               float quadratic=0.032f)
-    :   m_position {position}
-    ,   m_colour    {colour}
-    ,   m_ambient   {ambient}
-    ,   m_diffuse   {diffuse}
-    ,   m_specular  {specular}
-    ,   m_constant  {constant}
-    ,   m_linear    {linear}
-    ,   m_quadratic {quadratic}
+               bool gamma=false)
+    :   Light {position, colour, gamma}
     ,   m_lightCubeShader {"../code/shaders/3.3.simple.vert.glsl", "../code/shaders/light_cube.frag.glsl"}
     {
+        if (!gamma) {
+            m_constant = 1.0f;
+            m_linear = 0.09f;
+            m_quadratic = 0.032f;
+        }
+        else {
+            // for now these will do for both gamma and no
+            m_constant = 1.0f;
+            m_linear = 0.14f;
+            m_quadratic = 0.07f;
+        }
+
         glGenBuffers(1, &m_lightCubeVbo);
         glGenVertexArrays(1, &m_lightCubeVao);
         glBindVertexArray(m_lightCubeVao);
@@ -150,11 +167,6 @@ public:
     }
 
 private:
-    glm::vec3 m_position;
-    glm::vec3 m_colour;
-    glm::vec3 m_ambient;
-    glm::vec3 m_diffuse;
-    glm::vec3 m_specular;
     float m_constant;
     float m_linear;
     float m_quadratic;

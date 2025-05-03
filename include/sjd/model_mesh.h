@@ -1,5 +1,5 @@
-#ifndef MESH_H
-#define MESH_H
+#ifndef MODEL_MESH_H
+#define MODEL_MESH_H
 
 // mesh class written following learnopengl guide here:
 // https://learnopengl.com/Model-Loading/Mesh
@@ -11,7 +11,7 @@
 #include <sjd/shader.h>
 
 namespace sjd {
-class Mesh {
+class ModelMesh {
 public:
     struct Vertex {
         glm::vec3 position;
@@ -29,7 +29,7 @@ public:
     std::vector<unsigned int> m_indices;
     std::vector<Texture>      m_textures;
 
-    Mesh(std::vector<Vertex> vertices,
+    ModelMesh(std::vector<Vertex> vertices,
          std::vector<unsigned int> indices,
          std::vector<Texture> textures);
 
@@ -43,7 +43,7 @@ private:
     void setupMesh();
 };
 
-inline Mesh::Mesh(std::vector<Vertex> vertices,
+inline ModelMesh::ModelMesh(std::vector<Vertex> vertices,
                   std::vector<unsigned int> indices,
                   std::vector<Texture> textures) 
     : m_vertices {vertices}
@@ -53,7 +53,7 @@ inline Mesh::Mesh(std::vector<Vertex> vertices,
         setupMesh();
     }
 
-inline void Mesh::setupMesh()
+inline void ModelMesh::setupMesh()
 {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -81,7 +81,7 @@ inline void Mesh::setupMesh()
     glBindVertexArray(0);
 }
 
-inline void Mesh::Draw(sjd::Shader &shader) {
+inline void ModelMesh::Draw(sjd::Shader &shader) {
     unsigned int diffuseNr {0};
     unsigned int specularNr {0};
     for(unsigned int i = 0; i < m_textures.size(); i++)

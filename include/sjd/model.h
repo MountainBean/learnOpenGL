@@ -12,12 +12,12 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <sjd/shader.h>
-#include <sjd/mesh.h>
+#include <sjd/model_mesh.h>
 #include <stb/stb_image.h>
 
 namespace sjd {
-using VertsVec = std::vector<Mesh::Vertex>;
-using TexVec = std::vector<Mesh::Texture>;
+using VertsVec = std::vector<ModelMesh::Vertex>;
+using TexVec = std::vector<ModelMesh::Texture>;
 
 unsigned int TextureFromFile(const char *path, const std::string &directory);
 
@@ -29,7 +29,7 @@ public:
 
     void Draw(Shader &shader);	
 
-    std::vector<Mesh> m_meshes;
+    std::vector<ModelMesh> m_meshes;
     TexVec m_texturesLoaded;
 
 private:
@@ -40,7 +40,7 @@ private:
 
     void processNode(aiNode* node, const aiScene* scene);
 
-    Mesh processMesh(aiMesh* mesh, const aiScene* scene);
+    ModelMesh processMesh(aiMesh* mesh, const aiScene* scene);
 
     TexVec loadMaterialTextures(aiMaterial* mat, aiTextureType type, 
                                          std::string typeName);
@@ -79,7 +79,7 @@ inline void Model::processNode(aiNode* node, const aiScene* scene) {
     }
 }
 
-inline Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene)
+inline ModelMesh Model::processMesh(aiMesh *mesh, const aiScene *scene)
 {
     VertsVec vertices;
     TexVec textures;
@@ -87,7 +87,7 @@ inline Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene)
 
     for(unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
-        Mesh::Vertex vertex;
+        ModelMesh::Vertex vertex;
         // process vertex positions, normals and texture coordinates
         glm::vec3 vector; 
 
@@ -136,7 +136,7 @@ inline Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene)
                         specularMaps.end());
     }
 
-    return Mesh(vertices, indices, textures);
+    return ModelMesh(vertices, indices, textures);
 }
 
 inline TexVec Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName) {
@@ -157,7 +157,7 @@ inline TexVec Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type, s
         }
         if(!skip)
         {   // if texture hasn't been loaded already, load it
-            Mesh::Texture texture;
+            ModelMesh::Texture texture;
             texture.id = TextureFromFile(str.C_Str(), m_directory);
             texture.type = typeName;
             texture.path = str.C_Str();
