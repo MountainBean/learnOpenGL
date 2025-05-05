@@ -27,6 +27,9 @@ public:
 
     void setDirLight(sjd::DirLight* dirLight) {
         m_dirLight = dirLight;
+        if (m_dirLight->isShadowMapEnabled()) {
+            setShadowMap(m_dirLight->m_shadowMap);
+        }
     }
 
     void setPointLights(std::vector<std::reference_wrapper<sjd::PointLight>> lights) {
@@ -44,6 +47,18 @@ public:
         shader.use();
         shader.setVec3("viewPos", m_viewPos);
         if (m_dirLight) {
+            if (m_dirLight->isShadowMapEnabled()) {
+                glm::mat4 lightSpaceMatrix = m_dirLight->generateLightSpaceMat();
+                m_dirLight->bindDepthMap();
+                _draw_objects(*m_dirLight->m_shadowMapShader);
+                m_dirLight->unbindDepthMap();
+                shader.use();
+                shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+            }
+            else {
+                shader.use();
+                shader.setMat4("lightSpaceMatrix", glm::mat4(1.0f));
+            }
             m_dirLight->computeLight(shader);
         }
         shader.setInt("numPointLights", static_cast<int>(m_pointLights.size()));
@@ -52,11 +67,16 @@ public:
             pointLight.get().computeLight(shader, i++);
             pointLight.get().drawLightCube(m_projection, m_view);
         }
+        _draw_objects(shader);
+    }
+private:
+    void _draw_objects(sjd::Shader shader) {
         for (std::reference_wrapper<sjd::Mesh> meshref : m_meshes) {
             meshref.get().draw(m_projection, m_view, shader);
         }
     }
 
+public:
     glm::mat4 m_projection;
     glm::mat4 m_view;
     glm::vec3 m_viewPos;

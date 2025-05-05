@@ -1,5 +1,5 @@
-#include "glm/trigonometric.hpp"
 #include <cstdint>
+#include <ostream>
 #include <vector>
 
 #include <glad/glad.h>
@@ -25,7 +25,7 @@ namespace globals {
     constexpr uint32_t windowWidth {1200};
     constexpr uint32_t windowHeight {900};
     bool actionKeyDown = false;
-    bool gammaCor = true;
+    bool shadowMapping = true;
 }
 
 void bonus_processInput(GLFWwindow* window);
@@ -41,7 +41,7 @@ int main(void) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_FRAMEBUFFER_SRGB);
     glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK); // don't forget to reset original culling face
+    glCullFace(GL_BACK);
 
     // INIT PLAYER
     sjd::Camera playerCamera({-1.0f, 2.0f, 5.0f});
@@ -53,8 +53,6 @@ int main(void) {
                        "../code/shaders/blph_wShadow_map.frag.glsl");
     sjd::Shader depthShader("../code/shaders/simple_depth_shader.vert.glsl",
                             "../code/shaders/simple_depth_shader.frag.glsl");
-    sjd::Shader debugShader("../code/shaders/debug_quad.vert.glsl",
-                            "../code/shaders/debug_quad.frag.glsl");
     // ---
 
     // TEXTURES
@@ -97,10 +95,10 @@ int main(void) {
                       cube03,
                       floor,
                      });
-    scene.setShadowMap(&depthMap);
 
     // LIGHTS
     sjd::DirLight dirLight ({-2, 4, -1});
+    dirLight.enableShadowMap(&depthShader, &depthMap);
     scene.setDirLight(&dirLight);
 
     // RENDER LOOP
@@ -112,6 +110,9 @@ int main(void) {
         // PLAYER INPUTS
         player.processInput(timing.getDeltaTime());
         bonus_processInput(window);
+        if (globals::shadowMapping)
+            dirLight.enableShadowMap(&depthShader, &depthMap);
+        else dirLight.disableShadowMap();
 
         // MOVE OBJECTS
         cube01.reset();
@@ -123,24 +124,6 @@ int main(void) {
         cube02.rotateZ(static_cast<float>(glfwGetTime()));
         cube02.scale(glm::vec3(0.5f));
 
-        // RENDER DEPTH MAP
-        float near_plane = 1.0f, far_plane = 7.5f;
-        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-        glm::mat4 lightView = glm::lookAt(dirLight.getPosition(),
-                                  glm::vec3( 0.0f, 0.0f,  0.0f),
-                                  glm::vec3( 0.0f, 1.0f,  0.0f));
-        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-
-        depthShader.use();
-        depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-
-        depthMap.bind();    // render offscreen to depthmap
-        glClear(GL_DEPTH_BUFFER_BIT);
-        glCullFace(GL_FRONT);
-        scene.draw(depthShader);
-        glCullFace(GL_BACK); // don't forget to reset original culling face
-        depthMap.release(); // switch back to default framebuffer
-
         // CLEAR BUFFERS
         glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -149,8 +132,6 @@ int main(void) {
         glm::mat4 projection = glm::perspective(glm::radians(playerCamera.zoom), static_cast<float>(globals::windowWidth) / globals::windowHeight, 0.1f, 1000.0f);
         glm::mat4 view = playerCamera.getViewMatrix();
 
-        shader.use();
-        shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
         scene.m_projection = projection;
         scene.m_view = view;
         scene.m_viewPos = playerCamera.pos;
@@ -177,8 +158,9 @@ void bonus_processInput(GLFWwindow* window) {
     }
     if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE && globals::actionKeyDown) {
         globals::actionKeyDown = false;
+        std::cout << "Action Key pressed..." << std::endl;
         // Do action here...
-        // ...
+        globals::shadowMapping = !globals::shadowMapping;
     }
 
 }
