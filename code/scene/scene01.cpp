@@ -15,9 +15,9 @@
 #include <sjd/player.h>
 #include <sjd/texture.h>
 #include <sjd/light.h>
-#include <sjd/scene.h>
 #include <sjd/meshes/cube.h>
 #include <sjd/meshes/quad.h>
+#include <sjd/scene.h>
 
 namespace globals {
     constexpr uint32_t windowWidth {1200};
@@ -40,15 +40,13 @@ int main(void) {
     glEnable(GL_FRAMEBUFFER_SRGB);
 
     // INIT PLAYER
-    sjd::Camera playerCamera({0, 2.0f, 0});
+    sjd::Camera playerCamera({0, 2.0f, 3});
     sjd::Player player(window, playerCamera);
     // ---
 
     // SHADERS
-    sjd::Shader cubeShader("../code/shaders/lighting.vert.glsl",
-                           "../code/shaders/blinn_phong16.frag.glsl");
-    sjd::Shader floorShader("../code/shaders/lighting.vert.glsl",
-                            "../code/shaders/blinn_phong16.frag.glsl");
+    sjd::Shader shader("../code/shaders/lighting.vert.glsl",
+                       "../code/shaders/blinn_phong16.frag.glsl");
     // ---
 
     // TEXTURES
@@ -61,12 +59,11 @@ int main(void) {
     // ---
 
     // VERTICES
-    sjd::Cube cube(cubeShader);
+    sjd::Cube cube {};
     cube.setDiffuseMap(&containerDiffuseMap);
     cube.setSpecularMap(&containerSpecularMap);
 
-    sjd::Quad floor(floorShader,
-                    {-25,-0.5,25},
+    sjd::Quad floor({-25,-0.5,25},
                     {25,-0.5,25},
                     {25,-0.5,-25},
                     {-25,-0.5,-25});
@@ -74,19 +71,15 @@ int main(void) {
     sjd::Scene scene({cube, floor});
 
     // LIGHTS
-    sjd::DirLight dirLight {glm::normalize(glm::vec3{1, -1, 1})};
-    glm::vec3 pointLightColour({1.0f, 1.0f, 1.0f});
-    std::vector<sjd::PointLight> pointLights;
-    pointLights.push_back(sjd::PointLight({4, 0, -2}, pointLightColour, true));
-    pointLights.push_back(sjd::PointLight({2, 0, 2}, pointLightColour, true));
-    /*pointLights.push_back(sjd::PointLight({4, 1.5, -10}, pointLightColour, true));*/
-    /*pointLights.push_back(sjd::PointLight({4, 1.5, -14}, pointLightColour, true));*/
-    /*pointLights.push_back(sjd::PointLight({4, 1.5, -18}, pointLightColour, true));*/
-    /*pointLights.push_back(sjd::PointLight({4, 1.5, -22}, pointLightColour, true));*/
-    /*pointLights.push_back(sjd::PointLight({4, 1.5, -26}, pointLightColour, true));*/
-    /*pointLights.push_back(sjd::PointLight({4, 1.5, -30}, pointLightColour, true));*/
-    /*pointLights.push_back(sjd::PointLight({4, 1.5, -34}, pointLightColour, true));*/
+    sjd::DirLight dirLight {glm::normalize(glm::vec3{1, 2, 1})};
+    scene.setDirLight(&dirLight);
 
+    glm::vec3 pointLightColour({1.0f, 1.0f, 1.0f});
+    sjd::PointLight pointLight01({4, 0.5, -2}, pointLightColour, true);
+    sjd::PointLight pointLight02({2, 0.5, 2}, pointLightColour, true);
+    scene.setPointLights({
+        pointLight01,
+        pointLight02});
     // RENDER LOOP
     while(!glfwWindowShouldClose(window)) {
         // TIMING
@@ -108,22 +101,12 @@ int main(void) {
         // CONFIGURE SHADERS
         glm::mat4 projection = glm::perspective(glm::radians(playerCamera.zoom), static_cast<float>(globals::windowWidth) / globals::windowHeight, 0.1f, 1000.0f);
         glm::mat4 view = playerCamera.getViewMatrix();
-        scene.setProjection(projection);
-        scene.setView(view);
-
-        // Directional Light
-        cube.computeLight(dirLight, playerCamera.pos);
-        floor.computeLight(dirLight, playerCamera.pos);
-
-        // Point Lights
-        scene.computeLight(pointLights, playerCamera.pos);
+        scene.m_projection = projection;
+        scene.m_view = view;
+        scene.m_viewPos = playerCamera.pos;
 
         // Draw objects
-        for (sjd::PointLight currPointLight : pointLights) {
-            currPointLight.drawLightCube(projection, view);
-        }
-
-        scene.draw();
+        scene.draw(shader);
 
         // End Frame Processing
         glfwSwapBuffers(window);

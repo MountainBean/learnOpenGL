@@ -9,14 +9,12 @@
 
 namespace sjd {
 // static int to keep track of the texture for binding to shaders
-static unsigned int TexNr {0};
 
 class Texture {
 public:
 
     Texture(const std::string& path, bool gamma=false) 
-    : m_texNr {TexNr++}
-    , m_textureWrapS {GL_CLAMP_TO_EDGE}
+    : m_textureWrapS {GL_CLAMP_TO_EDGE}
     , m_textureWrapT {GL_CLAMP_TO_EDGE}
     , m_textureMinFilter {GL_LINEAR_MIPMAP_LINEAR}
     , m_textureMagFilter {GL_NEAREST}
@@ -47,7 +45,6 @@ public:
                 (gamma) ? formatIn = GL_SRGB_ALPHA : formatIn = GL_RGBA;
             }
 
-            glActiveTexture(GL_TEXTURE0 + m_texNr);
             glBindTexture(GL_TEXTURE_2D, m_id);
             glTexImage2D(GL_TEXTURE_2D,
                          0,
@@ -68,7 +65,6 @@ public:
             glGenerateMipmap(GL_TEXTURE_2D);
 
             stbi_image_free(data);
-            glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, 0);
         }
         else {
@@ -98,7 +94,6 @@ public:
     }
 
     unsigned int m_id;
-    unsigned int m_texNr;
     unsigned int m_textureWrapS;
     unsigned int m_textureWrapT;
     unsigned int m_textureMinFilter;

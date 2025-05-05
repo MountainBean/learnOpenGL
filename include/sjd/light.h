@@ -55,7 +55,7 @@ static const std::array<float, 108> lightCubeVertices {
 
 class Light {
 protected:
-    Light(glm::vec3 position={0.0f, -1.0f, 0.0f},
+    Light(glm::vec3 position={0.0f, 0.0f, 0.0f},
              glm::vec3 colour={1.0f, 1.0f, 1.0f},
              bool gamma=false)
     :   m_position {position}
@@ -70,19 +70,22 @@ protected:
 public:
     virtual void computeLight(sjd::Shader& shader, [[maybe_unused]] unsigned int id=0) const = 0;
 
+    glm::vec3 getPosition() {
+        return m_position;
+    }
+
 protected:
     glm::vec3 m_position;
     glm::vec3 m_colour;
     glm::vec3 m_ambient;
     glm::vec3 m_diffuse;
     glm::vec3 m_specular;
-    glm::vec3 m_direction;
     bool m_gamma;
 };
 
 class DirLight: public Light {
 public:
-    DirLight(glm::vec3 position={0.0f, -1.0f, 0.0f},
+    DirLight(glm::vec3 position={0.0f, 1.0f, 0.0f},
              glm::vec3 colour={1.0f, 1.0f, 1.0f},
              bool gamma=false)
     :   Light {position, colour, gamma}
@@ -90,7 +93,8 @@ public:
         m_direction = -glm::normalize(m_position);
     }
 
-    void computeLight(sjd::Shader& shader, [[maybe_unused]] unsigned int id=0) const {
+    virtual void computeLight(sjd::Shader& shader, [[maybe_unused]] unsigned int id=0) const {
+        shader.use();
         shader.setVec3("dirLight.direction", m_direction);
         shader.setVec3("dirLight.ambient", m_ambient*m_colour);
         shader.setVec3("dirLight.diffuse", m_diffuse*m_colour);

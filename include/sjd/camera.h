@@ -35,15 +35,15 @@ public:
 
 
     Camera(glm::vec3 initialPosition = glm::vec3(0.0f, 0.0f, 3.0f),
-           glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f),
-           float defYaw = -90.0f,
-           float defPitch = 0.0f);
+           glm::vec3 initialFocus = glm::vec3(0.0f));
 
     glm::mat4 getViewMatrix(){
         return glm::lookAt(pos, pos + front, up);
     }
 
     void processKeyboard(Movement direction, float deltaTime);
+
+    void turnTo(glm::vec3 point3d = glm::vec3(0.0f));
 
     void processMouseMovement(float xoffset,
                               float yoffset, 
@@ -58,21 +58,20 @@ private:
 };
 
 inline Camera::Camera(glm::vec3 initialPosition,
-                      glm::vec3 cameraUp,
-                      float defYaw,
-                      float defPitch)
-: up        {cameraUp}
+                      glm::vec3 initialFocus)
+: up        {0.0f, 1.0f, 0.0f}
 , worldUp   {up}
 , pos       {initialPosition}
 , front     {glm::vec3(0.0f, 0.0f, -1.0f)}
 , right     {}
-, pitch     {defPitch}
-, yaw       {defYaw}
+, pitch     {0.0f}
+, yaw       {-90.0f}
 , movementSpeed {2.5f}
 , mouseSensitivity {0.1f}
 , zoom {45.0f}
 {
     updateCameraVectors();
+    turnTo(initialFocus);
 }
 
 inline void Camera::processKeyboard(Camera::Movement direction,
@@ -90,6 +89,30 @@ inline void Camera::processKeyboard(Camera::Movement direction,
         pos += worldUp * velocity;
     if (direction == DOWN)
         pos -= worldUp * velocity;
+}
+
+inline void Camera::turnTo(glm::vec3 point3d) {
+    float offset_x = pos.x - point3d.x;
+    float offset_y = pos.y - point3d.y;
+    float offset_z = pos.z - point3d.z;
+    float offset_xz = glm::length(glm::vec2(offset_x, offset_z));
+
+    if (offset_x == 0) {
+        (offset_z > 0) ? yaw = -90.0f : yaw = 90.0f;
+    }
+    if (offset_x < 0) {
+        yaw = atanf(offset_z/offset_x) * 180/glm::pi<float>();
+    }
+    else if (offset_x > 0) {
+        if (offset_z < 0)
+            yaw = atanf(offset_z/offset_x) * 180/glm::pi<float>() + 180.0f;
+        else
+            yaw = atanf(offset_z/offset_x) * 180/glm::pi<float>() - 180.0f;
+    }
+    pitch = atanf(-offset_y/offset_xz) * 180/glm::pi<float>();
+
+    // update Front, Right and Up Vectors using the updated Euler angles
+    updateCameraVectors();
 }
 
 inline void Camera::processMouseMovement(float xoffset,
