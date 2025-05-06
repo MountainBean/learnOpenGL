@@ -77,6 +77,10 @@ public:
         m_shadowMap = {shadowMap, texNr++};
     }
 
+    void setShininess(float shininess) {
+        m_shininess = shininess;
+    }
+
     virtual void draw(glm::mat4 projection, glm::mat4 view, sjd::Shader& shader) = 0;
 
 protected:

@@ -45,7 +45,7 @@ uniform Material material;
 uniform int numPointLights;
 
 vec3 calcDirLight(DirLight light, vec3 normal, vec3 viewDir, float shadow);
-vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, float shadow);
+vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir);
 float ShadowCalculation(vec4 fragPosLightSpace);
 
 void main()
@@ -60,7 +60,7 @@ void main()
     // point lighting
     vec3 pointResult = {0, 0, 0};
     for (int i = 0; i < numPointLights; i++) {
-        pointResult += calcPointLight(pointLights[i], norm, viewDir, shadow);
+        pointResult += calcPointLight(pointLights[i], norm, viewDir);
     }
     FragColor = vec4(dirResult + pointResult, 1.0);
 }
@@ -81,7 +81,7 @@ vec3 calcDirLight(DirLight light, vec3 normal, vec3 viewDir, float shadow)
     return (ambient + (1.0 - shadow) * (diffuse + specular));
 }
 
-vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, float shadow) {
+vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir) {
     vec3 lightDir = normalize(light.position - fs_in.fragPos);
     vec3 halfwayDir = normalize(lightDir + viewDir);
     // diffuse shading
@@ -100,7 +100,7 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, float shadow) {
     ambient *= attenuation;
     diffuse *= attenuation;
     specular *= attenuation;
-    return (ambient + (1.0 - shadow) * (diffuse + specular));
+    return (ambient + diffuse + specular);
 }
 
 float ShadowCalculation(vec4 fragPosLightSpace) {
@@ -109,7 +109,7 @@ float ShadowCalculation(vec4 fragPosLightSpace) {
     projCoords = projCoords * 0.5 + 0.5; 
     float closestDepth = texture(shadowMap, projCoords.xy).r;
     float currentDepth = projCoords.z;
-    float bias = max(0.05 * (1.0 - dot(fs_in.fragNormal, normalize(-dirLight.direction))), 0.005);
+    float bias = max(0.01 * (1.0 - dot(fs_in.fragNormal, normalize(-dirLight.direction))), 0.005);
     // float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
     // PCF
     float shadow = 0.0;

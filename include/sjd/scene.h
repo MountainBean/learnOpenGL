@@ -2,6 +2,7 @@
 #define SCENE_H
 
 #include "sjd/framebuffer.h"
+#include "sjd/skybox.h"
 #include <functional>
 #include <sjd/meshes/mesh.h>
 #include <glm/glm.hpp>
@@ -43,6 +44,10 @@ public:
         }
     }
 
+    void setSkyBox(sjd::Skybox* skybox) {
+        m_skybox = skybox;
+    }
+
     void draw(sjd::Shader shader) {
         shader.use();
         shader.setVec3("viewPos", m_viewPos);
@@ -61,13 +66,19 @@ public:
             }
             m_dirLight->computeLight(shader);
         }
+
         shader.setInt("numPointLights", static_cast<int>(m_pointLights.size()));
         int i {0};
         for (std::reference_wrapper<sjd::PointLight> pointLight : m_pointLights) {
             pointLight.get().computeLight(shader, i++);
             pointLight.get().drawLightCube(m_projection, m_view);
         }
+
         _draw_objects(shader);
+
+        if (m_skybox) {
+            m_skybox->draw(m_projection, m_view);
+        }
     }
 private:
     void _draw_objects(sjd::Shader shader) {
@@ -85,6 +96,7 @@ private:
     std::vector<std::reference_wrapper<sjd::PointLight>> m_pointLights;
     sjd::DirLight* m_dirLight;
     sjd::FBTexture* m_shadowMap;
+    sjd::Skybox* m_skybox;
 
 };
 

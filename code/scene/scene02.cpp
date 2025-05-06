@@ -1,6 +1,5 @@
 #include <cstdint>
 #include <ostream>
-#include <vector>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -16,6 +15,7 @@
 #include <sjd/player.h>
 #include <sjd/texture.h>
 #include <sjd/framebuffer.h>
+#include <sjd/skybox.h>
 #include <sjd/light.h>
 #include <sjd/scene.h>
 #include <sjd/meshes/cube.h>
@@ -65,8 +65,17 @@ int main(void) {
 
     // FRAMEBUFFERS
     sjd::FBTexture depthMap(globals::windowWidth, globals::windowHeight);
-
     // ---
+
+    // SKYBOX
+    sjd::Skybox skybox({
+        "../data/skybox/right.jpg",
+        "../data/skybox/left.jpg",
+        "../data/skybox/top.jpg",
+        "../data/skybox/bottom.jpg",
+        "../data/skybox/front.jpg",
+        "../data/skybox/back.jpg"
+    });
 
     // VERTICES
     sjd::Cube cube01 {};
@@ -95,9 +104,10 @@ int main(void) {
                       cube03,
                       floor,
                      });
+    scene.setSkyBox(&skybox);
 
     // LIGHTS
-    sjd::DirLight dirLight ({-2, 4, -1});
+    sjd::DirLight dirLight ({-2.0f, 2.8f, -3.0});
     dirLight.enableShadowMap(&depthShader, &depthMap);
     scene.setDirLight(&dirLight);
 

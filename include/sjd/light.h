@@ -13,11 +13,11 @@ namespace sjd {
 
 static const std::array<float, 108> lightCubeVertices {
     -0.5f, -0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
      0.5f, -0.5f, -0.5f,
      0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-    -0.5f,  0.5f, -0.5f,
     -0.5f, -0.5f, -0.5f,
+    -0.5f,  0.5f, -0.5f,
 
     -0.5f, -0.5f,  0.5f,
      0.5f, -0.5f,  0.5f,
@@ -34,11 +34,11 @@ static const std::array<float, 108> lightCubeVertices {
     -0.5f,  0.5f,  0.5f,
 
      0.5f,  0.5f,  0.5f,
+     0.5f, -0.5f, -0.5f,
      0.5f,  0.5f, -0.5f,
      0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f,  0.5f,
      0.5f,  0.5f,  0.5f,
+     0.5f, -0.5f,  0.5f,
 
     -0.5f, -0.5f, -0.5f,
      0.5f, -0.5f, -0.5f,
@@ -48,11 +48,11 @@ static const std::array<float, 108> lightCubeVertices {
     -0.5f, -0.5f, -0.5f,
 
     -0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f,  0.5f,
      0.5f,  0.5f, -0.5f,
      0.5f,  0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
     -0.5f,  0.5f, -0.5f,
+    -0.5f,  0.5f,  0.5f,
 };
 
 class Light {
@@ -123,7 +123,7 @@ public:
             std::cout << "ERROR::DIRLIGHT::SHADOW_MAP" << std::endl;
             return glm::mat4(1.0f);
         }
-        float near_plane = 1.0f, far_plane = 7.5f;
+        float near_plane = 1.0f, far_plane = 15.0f;
         glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
         glm::mat4 lightView = glm::lookAt(getPosition(),
                                   glm::vec3( 0.0f, 0.0f,  0.0f),
